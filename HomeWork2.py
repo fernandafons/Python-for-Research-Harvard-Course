@@ -2,70 +2,98 @@ import numpy as np
 import random
 # --------------
 
-"""
-In the following exercises, we will create a tic-tac-toe board, place markers on the board, 
-evaluate if either player has won, and use this to simulate two basic strategies.
-"""
-
 
 def create_board():
-    """Write a function that creates a board with the value of
-        each cell set to the integer 0."""
+    """Creates a board with the value of each cell set to the integer 0."""
 
     board = np.zeros((3, 3), dtype=int)
     return board
 
 
 def place(board, player, position):
-    """Create a function where player is the current player (an integer 1 or 2).
+    """Player is the current player (an integer 1 or 2).
         Position is a tuple of length 2 specifying a desired location to place their marker."""
 
-    x = board[position]
-    if x == 0:
+    if board[position] == 0:
         board[position] = player
-    else:
-        print("This place is not empty.")
-    return board
+        return board
 
 
 def possibilities(board):
-    """Create a function that returns a list of all positions (tuples)
-        on the board that are not occupied (0). """
+    """Returns a list of all positions (tuples) on the board that are not occupied (0). """
 
-    positions = np.array(np.where(board == 0))
-    # print(positions)
-    positions_list = list(zip(positions[0], positions[1]))
-    return positions_list
+    return list(zip(*np.where(board == 0)))
 
 
 def random_place(board, player):
-    """Write a function that places a marker for the current
-        player at random among all the available positions"""
-    random.seed(1)
+    """Places a marker for the current player at random among all the available positions"""
+
     positions_list = possibilities(board)
     if len(positions_list) > 0:
-        random_selection = np.random.choice(len(positions_list))
-        position = positions_list[random_selection-1]
-        place(board, player, position)
+        random_selection = random.choice(positions_list)
+        place(board, player, random_selection)
     return board
 
 
-# def row_win(board, player):
+def row_win(board, player):
+    if np.any(np.all(board == player, axis=1)):
+        return True
+    else:
+        return False
 
 
-
-board = create_board()
-print(f"board: {board}")
-# place(board, 1, (0, 0))
-possibilities(board)
-x = 0
-while x <3:
-    random_place(board, 2)
-    random_place(board, 1)
-    x +=1
-print(f"board: {board}")
+def col_win(board, player):
+    if np.any(np.all(board == player, axis=0)):
+        return True
+    else:
+        return False
 
 
-"""TODO:
-   
-"""
+def diag_win(board, player):
+    if np.all(np.diag(board) == player) or np.all(np.diag(np.fliplr(board)) == player):
+        return True
+    else:
+        return False
+
+
+def evaluate(board):
+    """Checks if some of the players won the game."""
+    winner = 0
+    for player in [1, 2]:
+        if row_win(board, player) or col_win(board, player) or diag_win(board, player):
+            winner = player
+    if np.all(board != 0) and winner == 0:
+        winner = -1
+    # print(f"Player {winner} has won the game!")
+    return winner
+
+
+def play_game():
+    """Play the complete game"""
+    board = create_board()
+    winner = 0
+    while winner == 0:
+        for player in [1, 2]:
+            random_place(board, player)
+            winner = evaluate(board)
+            if winner != 0:
+                break
+    return winner
+
+
+def play_strategic_game():
+    """Player one will always start with the middle square """
+    board, winner = create_board(), 0
+    board[1, 1] = 1
+    while winner == 0:
+        for player in [2, 1]:
+            random_place(board, player)
+            winner = evaluate(board)
+            if winner != 0:
+                break
+    return winner
+
+
+random.seed(1)
+results = [play_strategic_game() for i in range(1000)]
+print(results.count(1))
