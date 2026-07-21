@@ -38,14 +38,12 @@ def chat():
     response = None
     if request.method == "POST":
         user_input = request.form["user_input"]
-        completion = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "user", "content": user_input}
-            ]
+        result = client.responses.create(
+            model="gpt-4o",
+            tools=[{"type": "web_search_preview"}],
+            input=user_input
         )
-        response = completion.choices[0].message.content
-        # response = "This is just a test"
+        response = result.output_text
     return render_template_string(HTML_TEMPLATE, response=response)
 
 if __name__ == "__main__":
